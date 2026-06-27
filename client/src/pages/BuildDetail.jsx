@@ -115,7 +115,7 @@ function BuildDetail() {
               userHasLiked ? 'bg-red-500 text-white' : 'bg-gray-200'
             }`}
           >
-            ❤️ {likes.count} {userHasLiked ? 'Unlike' : 'Like'}
+            ❤️ {likes.count} {userHasLiked ? 'Likes' : 'Likes'}
           </button>
         )}
       </div>

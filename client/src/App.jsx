@@ -4,6 +4,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Feed from './pages/Feed'
 import BuildDetail from './pages/BuildDetail'
+import BuildCreator from './pages/BuildCreator'
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/builds/:id" element={<BuildDetail />} />
+        <Route path="/create" element={<BuildCreator />} />
       </Routes>
     </BrowserRouter>
   )
