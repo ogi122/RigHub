@@ -16,6 +16,9 @@ router.post('/', verifyToken, (req, res) => {
   const query = 'INSERT INTO Review (build_id, user_id, rating, comment) VALUES (?, ?, ?, ?)';
   db.query(query, [build_id, req.user.userId, rating, comment || null], (error, results) => {
     if (error) {
+      if (error.code === 'ER_DUP_ENTRY') {
+        return res.status(409).json({ message: 'You have already reviewed this build' });
+      }
       console.error('Error creating review:', error);
       return res.status(500).json({ message: 'Server error' });
     }
