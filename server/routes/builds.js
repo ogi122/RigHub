@@ -150,4 +150,17 @@ router.delete('/:id', verifyToken, (req, res) => {
   });
 });
 
+router.get('/user/:userId', (req, res) => {
+  const { userId } = req.params
+
+  const query = 'SELECT * FROM Build WHERE user_id = ? ORDER BY created_at DESC'
+  db.query(query, [userId], (error, results) => {
+    if (error) {
+      console.error('Error fetching user builds:', error)
+      return res.status(500).json({ message: 'Server error' })
+    }
+    res.status(200).json(results)
+  })
+})
+
 module.exports = router;

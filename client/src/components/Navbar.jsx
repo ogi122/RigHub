@@ -19,13 +19,20 @@ function Navbar() {
       <div className="flex items-center gap-4">
         {user ? (
           <>
-            <span>Pozdrav, {user.username}</span>
             <Link to="/components" className="hover:underline">
               Components
+            </Link>
+            <Link to={`/profile/${user.id}`} className="hover:underline">
+              {user.username}
             </Link>
             <Link to="/create" className="bg-blue-500 px-3 py-1 rounded hover:bg-blue-400">
               + Create Build
             </Link>
+            {user.role === 'admin' && (
+            <Link to="/admin" className="bg-red-500 px-3 py-1 rounded hover:bg-red-400">
+              Admin
+            </Link>
+            )}
             <button
               onClick={handleLogout}
               className="bg-blue-800 px-3 py-1 rounded"

@@ -72,4 +72,47 @@ router.post('/login', (req, res) => {
   });
 });
 
+router.get('/user/:id', (req, res) => {
+  const { id } = req.params
+
+  const query = 'SELECT id, username, bio, avatar_url, created_at FROM User WHERE id = ?'
+  db.query(query, [id], (error, results) => {
+    if (error) {
+      console.error('Error fetching user:', error)
+      return res.status(500).json({ message: 'Server error' })
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'User not found' })
+    }
+    res.status(200).json(results[0])
+  })
+})
+
+const { verifyAdmin } = require('../middleware/auth')
+
+router.get('/users', verifyAdmin, (req, res) => {
+  const query = 'SELECT id, username, email, role, created_at FROM User ORDER BY created_at DESC'
+  db.query(query, (error, results) => {
+    if (error) {
+      console.error('Error fetching users:', error)
+      return res.status(500).json({ message: 'Server error' })
+    }
+    res.status(200).json(results)
+  })
+})
+
+router.put('/users/:id/role', verifyAdmin, (req, res) => {
+  const { id } = req.params
+  const { role } = req.body
+
+  const query = 'UPDATE User SET role = ? WHERE id = ?'
+  db.query(query, [role, id], (error) => {
+    if (error) {
+      console.error('Error updating user role:', error)
+      return res.status(500).json({ message: 'Server error' })
+    }
+    res.status(200).json({ message: 'User role updated successfully' })
+  })
+})
+
 module.exports = router;

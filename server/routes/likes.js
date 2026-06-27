@@ -57,4 +57,23 @@ router.get('/build/:buildId', (req, res) => {
   });
 });
 
+router.get('/user/:userId', (req, res) => {
+  const { userId } = req.params
+
+  const query = `
+    SELECT Build.*
+    FROM \`Like\`
+    JOIN Build ON \`Like\`.build_id = Build.id
+    WHERE \`Like\`.user_id = ?
+    ORDER BY \`Like\`.created_at DESC
+  `
+  db.query(query, [userId], (error, results) => {
+    if (error) {
+      console.error('Error fetching liked builds:', error)
+      return res.status(500).json({ message: 'Server error' })
+    }
+    res.status(200).json(results)
+  })
+})
+
 module.exports = router;
