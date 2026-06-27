@@ -20,6 +20,9 @@ function Navbar() {
         {user ? (
           <>
             <span>Pozdrav, {user.username}</span>
+            <Link to="/components" className="hover:underline">
+              Components
+            </Link>
             <Link to="/create" className="bg-blue-500 px-3 py-1 rounded hover:bg-blue-400">
               + Create Build
             </Link>
