@@ -2,9 +2,19 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 const { verifyToken } = require('../middleware/auth');
+const upload = require('../middleware/upload');
 
 router.get('/', (req, res) => {
-  const query = 'SELECT * FROM Build';
+  const query = `
+    SELECT
+      Build.*,
+      COUNT(DISTINCT \`Like\`.id) AS like_count,
+      COUNT(DISTINCT Review.id) AS review_count
+    FROM Build
+    LEFT JOIN \`Like\` ON \`Like\`.build_id = Build.id
+    LEFT JOIN Review ON Review.build_id = Build.id
+    GROUP BY Build.id
+  `;
   db.query(query, (error, results) => {
     if (error) {
       console.error('Error fetching builds:', error);
@@ -14,10 +24,28 @@ router.get('/', (req, res) => {
   });
 });
 
+router.get('/user/:userId', (req, res) => {
+  const { userId } = req.params;
+
+  const query = 'SELECT * FROM Build WHERE user_id = ? ORDER BY created_at DESC';
+  db.query(query, [userId], (error, results) => {
+    if (error) {
+      console.error('Error fetching user builds:', error);
+      return res.status(500).json({ message: 'Server error' });
+    }
+    res.status(200).json(results);
+  });
+});
+
 router.get('/:id', (req, res) => {
   const { id } = req.params;
 
-  const buildQuery = 'SELECT * FROM Build WHERE id = ?';
+  const buildQuery = `
+  SELECT Build.*, User.username AS author_username
+  FROM Build
+  JOIN User ON Build.user_id = User.id
+  WHERE Build.id = ?
+  `;
   db.query(buildQuery, [id], (error, buildResults) => {
     if (error) {
       console.error('Error fetching build:', error);
@@ -47,8 +75,10 @@ router.get('/:id', (req, res) => {
   });
 });
 
-router.post('/', verifyToken, (req, res) => {
-  const { title, description, purpose, componentIds } = req.body;
+router.post('/', verifyToken, upload.single('cover_image'), (req, res) => {
+  const { title, description, purpose } = req.body;
+  const componentIds = JSON.parse(req.body.componentIds);
+  const coverImageUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
   if (!title || !description || !componentIds || componentIds.length === 0) {
     return res.status(400).json({ message: 'Title, description, and at least one component are required' });
@@ -63,8 +93,8 @@ router.post('/', verifyToken, (req, res) => {
 
     const totalPrice = priceResults.reduce((sum, component) => sum + Number(component.price), 0);
 
-    const buildQuery = 'INSERT INTO Build (user_id, title, description, purpose, total_price) VALUES (?, ?, ?, ?, ?)';
-    db.query(buildQuery, [req.user.userId, title, description, purpose || null, totalPrice], (error, buildResult) => {
+    const buildQuery = 'INSERT INTO Build (user_id, title, description, purpose, cover_image_url, total_price) VALUES (?, ?, ?, ?, ?, ?)';
+    db.query(buildQuery, [req.user.userId, title, description, purpose || null, coverImageUrl, totalPrice], (error, buildResult) => {
       if (error) {
         console.error('Error creating build:', error);
         return res.status(500).json({ message: 'Server error' });
@@ -149,18 +179,5 @@ router.delete('/:id', verifyToken, (req, res) => {
     });
   });
 });
-
-router.get('/user/:userId', (req, res) => {
-  const { userId } = req.params
-
-  const query = 'SELECT * FROM Build WHERE user_id = ? ORDER BY created_at DESC'
-  db.query(query, [userId], (error, results) => {
-    if (error) {
-      console.error('Error fetching user builds:', error)
-      return res.status(500).json({ message: 'Server error' })
-    }
-    res.status(200).json(results)
-  })
-})
 
 module.exports = router;

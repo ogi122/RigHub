@@ -3,6 +3,8 @@ const bcrypt = require('bcrypt');
 const router = express.Router();
 const db = require('../db');
 const jwt = require('jsonwebtoken');
+const { verifyToken } = require('../middleware/auth');
+const upload = require('../middleware/upload');
 
 router.post('/register', async (req, res) => {
   const { username, email, password } = req.body;
@@ -69,6 +71,23 @@ router.post('/login', (req, res) => {
         role: user.role
       }
     });
+  });
+});
+
+router.put('/avatar', verifyToken, upload.single('avatar'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ message: 'No image file provided' });
+  }
+
+  const avatarUrl = `/uploads/${req.file.filename}`;
+
+  const query = 'UPDATE User SET avatar_url = ? WHERE id = ?';
+  db.query(query, [avatarUrl, req.user.userId], (error) => {
+    if (error) {
+      console.error('Error updating avatar:', error);
+      return res.status(500).json({ message: 'Server error' });
+    }
+    res.status(200).json({ message: 'Avatar updated successfully', avatarUrl: avatarUrl });
   });
 });
 

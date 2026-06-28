@@ -1,1 +1,4 @@
 @import "tailwindcss";
+
+/* Omogućava dark mode kroz 'dark' klasu na <html> elementu */
+@variant dark (&:where(.dark, .dark *));
