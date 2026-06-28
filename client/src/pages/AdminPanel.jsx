@@ -13,6 +13,7 @@ function AdminPanel() {
   const [brand, setBrand] = useState('')
   const [price, setPrice] = useState('')
   const [image, setImage] = useState(null)
+  const [imagePreview, setImagePreview] = useState(null)
   const [componentError, setComponentError] = useState('')
   const [componentSuccess, setComponentSuccess] = useState('')
 
@@ -45,6 +46,19 @@ function AdminPanel() {
       .then((data) => setBuilds(data))
   }
 
+  function handleImageChange(e) {
+    const file = e.target.files[0]
+    if (file) {
+      setImage(file)
+      setImagePreview(URL.createObjectURL(file))
+    }
+  }
+
+  function handleRemoveImage() {
+    setImage(null)
+    setImagePreview(null)
+  }
+
   async function handleAddComponent(e) {
     e.preventDefault()
     setComponentError('')
@@ -75,11 +89,13 @@ function AdminPanel() {
     setBrand('')
     setPrice('')
     setImage(null)
+    setImagePreview(null)
     fetchComponents()
   }
 
   async function handleDeleteComponent(id) {
     if (!window.confirm('Delete this component?')) return
+
     await fetch(`http://localhost:5000/api/components/${id}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` }
@@ -87,26 +103,60 @@ function AdminPanel() {
     fetchComponents()
   }
 
-  async function handleChangeRole(userId, newRole) {
-    await fetch(`http://localhost:5000/api/auth/users/${userId}/role`, {
+  async function handleBanToggle(userId, isBanned) {
+    const action = isBanned ? 'unban' : 'ban'
+    if (!window.confirm(`Are you sure you want to ${action} this user?`)) return
+
+    const response = await fetch(`http://localhost:5000/api/auth/users/${userId}/ban`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify({ role: newRole })
+      headers: { Authorization: `Bearer ${token}` }
     })
+
+    if (!response.ok) {
+      const data = await response.json()
+      alert(data.message)
+      return
+    }
+
+    fetchUsers()
+  }
+
+  async function handleDeleteUser(userId) {
+    if (!window.confirm('Permanently delete this user and all their builds, reviews, and votes? This cannot be undone.')) return
+
+    const response = await fetch(`http://localhost:5000/api/auth/users/${userId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` }
+    })
+
+    if (!response.ok) {
+      const data = await response.json()
+      alert(data.message)
+      return
+    }
+
     fetchUsers()
   }
 
   async function handleDeleteBuild(buildId) {
     if (!window.confirm('Delete this build?')) return
-    await fetch(`http://localhost:5000/api/builds/${buildId}`, {
+
+    const response = await fetch(`http://localhost:5000/api/builds/${buildId}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` }
     })
+
+    if (!response.ok) {
+      const data = await response.json()
+      alert(data.message)
+      return
+    }
+
     fetchBuilds()
   }
+
+  // Admins se ne prikazuju u listi - admin nad admin nalozima ne radi nikakve akcije
+  const visibleUsers = users.filter((u) => u.role !== 'admin')
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-8">
@@ -118,7 +168,7 @@ function AdminPanel() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 rounded font-bold capitalize transition ${
+              className={`px-4 py-2 rounded font-bold capitalize transition cursor-pointer ${
                 activeTab === tab
                   ? 'bg-blue-600 text-white'
                   : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border dark:border-gray-700'
@@ -129,6 +179,7 @@ function AdminPanel() {
           ))}
         </div>
 
+        {/* Components tab */}
         {activeTab === 'components' && (
           <div>
             <h2 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">Add New Component</h2>
@@ -161,7 +212,7 @@ function AdminPanel() {
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="border dark:border-gray-600 p-2 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="border dark:border-gray-600 p-2 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white cursor-pointer"
                 >
                   {CATEGORIES.map((cat) => (
                     <option key={cat} value={cat}>{cat}</option>
@@ -169,14 +220,42 @@ function AdminPanel() {
                 </select>
               </div>
 
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setImage(e.target.files[0])}
-                className="mb-3 text-gray-600 dark:text-gray-300"
-              />
+              {imagePreview ? (
+                <div className="relative mb-3">
+                  <img
+                    src={imagePreview}
+                    alt="Component preview"
+                    className="w-full h-40 object-cover rounded"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600 transition cursor-pointer"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <label
+                  htmlFor="component-image-upload"
+                  className="flex items-center justify-center gap-2 w-full h-24 mb-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded cursor-pointer bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition text-blue-600 dark:text-blue-400 font-semibold"
+                >
+                  <span className="text-2xl leading-none">+</span>
+                  <span>Add image</span>
+                  <input
+                    id="component-image-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                </label>
+              )}
 
-              <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded transition">
+              <button
+                type="submit"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded transition cursor-pointer"
+              >
                 Add Component
               </button>
             </form>
@@ -195,7 +274,7 @@ function AdminPanel() {
                   </div>
                   <button
                     onClick={() => handleDeleteComponent(c.id)}
-                    className="text-red-500 hover:text-red-700 text-sm"
+                    className="text-red-500 hover:text-red-700 text-sm cursor-pointer"
                   >
                     Delete
                   </button>
@@ -205,32 +284,48 @@ function AdminPanel() {
           </div>
         )}
 
+        {/* Users tab */}
         {activeTab === 'users' && (
           <div>
             <h2 className="text-lg font-bold mb-3 text-gray-900 dark:text-white">
-              All Users ({users.length})
+              All Users ({visibleUsers.length})
             </h2>
             <div className="bg-white dark:bg-gray-800 rounded shadow-md divide-y dark:divide-gray-700">
-              {users.map((u) => (
+              {visibleUsers.map((u) => (
                 <div key={u.id} className="flex justify-between items-center p-3">
                   <div>
                     <span className="font-bold text-gray-900 dark:text-white">{u.username}</span>
                     <span className="text-gray-500 dark:text-gray-400 text-sm ml-2">{u.email}</span>
+                    {u.is_banned === 1 && (
+                      <span className="ml-2 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 text-xs px-2 py-0.5 rounded">
+                        Banned
+                      </span>
+                    )}
                   </div>
-                  <select
-                    value={u.role}
-                    onChange={(e) => handleChangeRole(u.id, e.target.value)}
-                    className="border dark:border-gray-600 p-1 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  >
-                    <option value="user">user</option>
-                    <option value="admin">admin</option>
-                  </select>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => handleBanToggle(u.id, u.is_banned === 1)}
+                      className="text-sm cursor-pointer text-yellow-600 hover:text-yellow-700 dark:text-yellow-400"
+                    >
+                      {u.is_banned === 1 ? 'Unban' : 'Ban'}
+                    </button>
+                    <button
+                      onClick={() => handleDeleteUser(u.id)}
+                      className="text-red-500 hover:text-red-700 text-sm cursor-pointer"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
               ))}
+              {visibleUsers.length === 0 && (
+                <p className="p-3 text-gray-500 dark:text-gray-400 text-sm">No users to manage.</p>
+              )}
             </div>
           </div>
         )}
 
+        {/* Builds tab */}
         {activeTab === 'builds' && (
           <div>
             <h2 className="text-lg font-bold mb-3 text-gray-900 dark:text-white">
@@ -245,7 +340,7 @@ function AdminPanel() {
                   </div>
                   <button
                     onClick={() => handleDeleteBuild(b.id)}
-                    className="text-red-500 hover:text-red-700 text-sm"
+                    className="text-red-500 hover:text-red-700 text-sm cursor-pointer"
                   >
                     Delete
                   </button>

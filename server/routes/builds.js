@@ -161,20 +161,32 @@ router.delete('/:id', verifyToken, (req, res) => {
       return res.status(403).json({ message: 'You can only delete your own builds' });
     }
 
-    const deleteComponentsQuery = 'DELETE FROM BuildComponent WHERE build_id = ?';
-    db.query(deleteComponentsQuery, [id], (error) => {
+    db.query('DELETE FROM Review WHERE build_id = ?', [id], (error) => {
       if (error) {
-        console.error('Error deleting build components:', error);
+        console.error('Error deleting build reviews:', error);
         return res.status(500).json({ message: 'Server error' });
       }
 
-      const deleteBuildQuery = 'DELETE FROM Build WHERE id = ?';
-      db.query(deleteBuildQuery, [id], (error) => {
+      db.query('DELETE FROM `Like` WHERE build_id = ?', [id], (error) => {
         if (error) {
-          console.error('Error deleting build:', error);
+          console.error('Error deleting build votes:', error);
           return res.status(500).json({ message: 'Server error' });
         }
-        res.status(200).json({ message: 'Build deleted successfully' });
+
+        db.query('DELETE FROM BuildComponent WHERE build_id = ?', [id], (error) => {
+          if (error) {
+            console.error('Error deleting build components:', error);
+            return res.status(500).json({ message: 'Server error' });
+          }
+
+          db.query('DELETE FROM Build WHERE id = ?', [id], (error) => {
+            if (error) {
+              console.error('Error deleting build:', error);
+              return res.status(500).json({ message: 'Server error' });
+            }
+            res.status(200).json({ message: 'Build deleted successfully' });
+          });
+        });
       });
     });
   });
