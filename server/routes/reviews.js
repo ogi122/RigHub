@@ -30,7 +30,7 @@ router.get('/build/:buildId', (req, res) => {
   const { buildId } = req.params;
 
   const query = `
-    SELECT Review.*, User.username
+    SELECT Review.*, User.username, User.avatar_url
     FROM Review
     JOIN User ON Review.user_id = User.id
     WHERE Review.build_id = ?

@@ -72,7 +72,8 @@ router.post('/login', (req, res) => {
         id: user.id,
         username: user.username,
         email: user.email,
-        role: user.role
+        role: user.role,
+        avatar_url: user.avatar_url
       }
     });
   });
@@ -236,5 +237,16 @@ router.put('/avatar', verifyToken, upload.single('avatar'), (req, res) => {
     res.status(200).json({ message: 'Avatar updated successfully', avatarUrl: avatarUrl });
   });
 });
+
+router.get('/users/all', (req, res) => {
+  const query = 'SELECT id, username, avatar_url FROM User WHERE role = ? ORDER BY created_at DESC'
+  db.query(query, ['user'], (error, results) => {
+    if (error) {
+      console.error('Error fetching users:', error)
+      return res.status(500).json({ message: 'Server error' })
+    }
+    res.status(200).json(results)
+  })
+})
 
 module.exports = router;

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import BuildCard from '../components/BuildCard'
+import UsersBar from '../components/UsersBar'
 
 const PURPOSES = ['Gaming', 'Workstation', 'Streaming', 'Budget', 'Office']
 
@@ -35,7 +36,7 @@ function Feed() {
 
   const filteredBuilds = builds
     .filter((build) => build.title.toLowerCase().includes(search.toLowerCase()))
-    .filter((build) => purposeFilter === '' || build.purpose === purposeFilter)
+    .filter((build) => purposeFilter === '' || (build.purpose && build.purpose.toLowerCase() === purposeFilter.toLowerCase()))
     .filter((build) => minPrice === '' || Number(build.total_price) >= Number(minPrice))
     .filter((build) => maxPrice === '' || Number(build.total_price) <= Number(maxPrice))
     .sort((a, b) => {
@@ -63,8 +64,9 @@ function Feed() {
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+      <UsersBar />
       {/* Feed title block - full width, lighter shade of navbar blue */}
-      <div className="bg-blue-950 py-8 text-center border-b dark:border-gray-700">
+      <div className="bg-blue-950 py-10 text-center border-b dark:border-gray-700">
         <div className="flex items-center justify-center gap-3">
           <svg className="w-10 h-10 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10" />

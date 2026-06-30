@@ -44,7 +44,7 @@ function Navbar() {
   }, [])
 
   return (
-    <nav className="bg-blue-600 text-white px-6 py-3 border-b-2 border-blue-800">
+    <nav className="bg-blue-600 text-white px-6 py-4 border-b-4 border-blue-400 dark:border-gray-900">
       <div className="flex items-center justify-between">
 
         {/* Logo */}
@@ -125,9 +125,17 @@ function Navbar() {
                   onClick={() => setDropdownOpen(!dropdownOpen)}
                   className="flex items-center gap-2 hover:opacity-80 transition cursor-pointer"
                 >
-                  <div className="w-8 h-8 bg-white text-blue-600 rounded-full flex items-center justify-center font-bold text-sm">
-                    {user.username.charAt(0).toUpperCase()}
-                  </div>
+                  {user.avatar_url ? (
+                    <img
+                      src={`http://localhost:5000${user.avatar_url}`}
+                      alt={user.username}
+                      className="w-8 h-8 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 bg-white text-blue-600 rounded-full flex items-center justify-center font-bold text-sm">
+                      {user.username.charAt(0).toUpperCase()}
+                    </div>
+                  )}
                   <span className="font-semibold">{user.username}</span>
                   <span className="text-xs">{dropdownOpen ? '▲' : '▼'}</span>
                 </button>

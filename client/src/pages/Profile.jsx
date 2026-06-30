@@ -5,7 +5,7 @@ import BuildCard from '../components/BuildCard'
 
 function Profile() {
   const { id } = useParams()
-  const { user, token } = useAuth()
+  const { user, token, login } = useAuth()
   const fileInputRef = useRef(null)
 
   const [profileUser, setProfileUser] = useState(null)
@@ -73,6 +73,7 @@ function Profile() {
         return
       }
 
+      login({ ...user, avatar_url: data.avatarUrl }, token)
       fetchProfileData()
       setAvatarUploading(false)
     } catch (error) {
@@ -95,16 +96,20 @@ function Profile() {
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-8">
       <div className="max-w-4xl mx-auto">
-        <div className="bg-white dark:bg-gray-800 rounded shadow-md p-6 mb-6 flex items-center gap-6">
+
+        {/* Profile card */}
+        <div className="bg-white dark:bg-gray-800 rounded shadow-md p-10 mb-6 flex items-center gap-8">
+
+          {/* Avatar */}
           <div className="relative flex-shrink-0">
             {profileUser.avatar_url ? (
               <img
                 src={`http://localhost:5000${profileUser.avatar_url}`}
                 alt={profileUser.username}
-                className="w-16 h-16 rounded-full object-cover"
+                className="w-32 h-32 rounded-full object-cover border-4 border-gray-200 dark:border-gray-700 shadow-md"
               />
             ) : (
-              <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+              <div className="w-32 h-32 bg-blue-600 rounded-full flex items-center justify-center text-white text-5xl font-bold border-4 border-gray-200 dark:border-gray-700 shadow-md">
                 {profileUser.username.charAt(0).toUpperCase()}
               </div>
             )}
@@ -115,9 +120,9 @@ function Profile() {
                   onClick={handleAvatarClick}
                   disabled={avatarUploading}
                   title="Change profile picture"
-                  className="absolute -bottom-1 -right-1 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-1.5 border-2 border-white dark:border-gray-800 cursor-pointer transition"
+                  className="absolute bottom-1 right-1 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-2 border-2 border-white dark:border-gray-800 cursor-pointer transition"
                 >
-                  <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M12 20h9" />
                     <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
                   </svg>
@@ -133,12 +138,17 @@ function Profile() {
             )}
           </div>
 
+          {/* User info */}
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{profileUser.username}</h1>
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+              {profileUser.username}
+            </h1>
             {profileUser.bio && (
-              <p className="text-gray-600 dark:text-gray-300 mt-1">{profileUser.bio}</p>
+              <p className="text-gray-600 dark:text-gray-300 mt-2 text-lg">
+                {profileUser.bio}
+              </p>
             )}
-            <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">
+            <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">
               {myBuilds.length} build(s) · {likedBuilds.length} liked
             </p>
             {avatarUploading && (
@@ -150,6 +160,7 @@ function Profile() {
           </div>
         </div>
 
+        {/* Tabs */}
         <div className="flex gap-2 mb-6">
           <button
             onClick={() => setActiveTab('builds')}
@@ -173,6 +184,7 @@ function Profile() {
           </button>
         </div>
 
+        {/* Builds grid */}
         {activeTab === 'builds' && (
           <div>
             {myBuilds.length === 0 ? (
@@ -200,6 +212,7 @@ function Profile() {
             )}
           </div>
         )}
+
       </div>
     </div>
   )

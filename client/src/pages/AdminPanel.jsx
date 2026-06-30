@@ -161,7 +161,7 @@ function AdminPanel() {
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-8">
       <div className="max-w-5xl mx-auto">
-        <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Admin Panel</h1>
+        <h1 className="text-7xl font-bold mb-6 text-gray-900 dark:text-white">Admin Panel</h1>
 
         <div className="flex gap-2 mb-6">
           {['components', 'users', 'builds'].map((tab) => (

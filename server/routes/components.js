@@ -16,36 +16,16 @@ router.get('/', (req, res) => {
 });
 
 router.post('/', verifyAdmin, upload.single('image'), (req, res) => {
-  const { name, category, brand, price, specs } = req.body;
+  const { name, category, brand, price } = req.body;
   const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
   if (!name || !category || !brand || !price) {
     return res.status(400).json({ message: 'Name, category, brand, and price are required' });
   }
 
-  const query = 'INSERT INTO Component (name, category, brand, price, image_url, specs, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)';
-  const specsJson = specs ? JSON.stringify(specs) : null;
+  const query = 'INSERT INTO Component (name, category, brand, price, image_url, created_by) VALUES (?, ?, ?, ?, ?, ?)';
 
-  db.query(query, [name, category, brand, price, imageUrl, specsJson, req.user.userId], (error, results) => {
-    if (error) {
-      console.error('Error creating component:', error);
-      return res.status(500).json({ message: 'Server error' });
-    }
-    res.status(201).json({ message: 'Component created successfully', componentId: results.insertId });
-  });
-});
-
-router.post('/', verifyAdmin, (req, res) => {
-  const { name, category, brand, price, image_url, specs } = req.body;
-
-  if (!name || !category || !brand || !price) {
-    return res.status(400).json({ message: 'Name, category, brand, and price are required' });
-  }
-
-  const query = 'INSERT INTO Component (name, category, brand, price, image_url, specs, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)';
-  const specsJson = specs ? JSON.stringify(specs) : null;
-
-  db.query(query, [name, category, brand, price, image_url || null, specsJson, req.user.userId], (error, results) => {
+  db.query(query, [name, category, brand, price, imageUrl, req.user.userId], (error, results) => {
     if (error) {
       console.error('Error creating component:', error);
       return res.status(500).json({ message: 'Server error' });
@@ -56,12 +36,11 @@ router.post('/', verifyAdmin, (req, res) => {
 
 router.put('/:id', verifyAdmin, (req, res) => {
   const { id } = req.params;
-  const { name, category, brand, price, image_url, specs } = req.body;
+  const { name, category, brand, price, image_url } = req.body;
 
-  const query = 'UPDATE Component SET name = ?, category = ?, brand = ?, price = ?, image_url = ?, specs = ? WHERE id = ?';
-  const specsJson = specs ? JSON.stringify(specs) : null;
+  const query = 'UPDATE Component SET name = ?, category = ?, brand = ?, price = ?, image_url = ? WHERE id = ?';
 
-  db.query(query, [name, category, brand, price, image_url || null, specsJson, id], (error, results) => {
+  db.query(query, [name, category, brand, price, image_url || null, id], (error, results) => {
     if (error) {
       console.error('Error updating component:', error);
       return res.status(500).json({ message: 'Server error' });

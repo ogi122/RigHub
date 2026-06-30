@@ -8,7 +8,8 @@ router.get('/', (req, res) => {
   const query = `
     SELECT
       Build.*,
-      COUNT(DISTINCT \`Like\`.id) AS like_count,
+      COUNT(DISTINCT CASE WHEN \`Like\`.vote_type = 'up' THEN \`Like\`.id END) AS like_count,
+      COUNT(DISTINCT CASE WHEN \`Like\`.vote_type = 'down' THEN \`Like\`.id END) AS downvote_count,
       COUNT(DISTINCT Review.id) AS review_count
     FROM Build
     LEFT JOIN \`Like\` ON \`Like\`.build_id = Build.id

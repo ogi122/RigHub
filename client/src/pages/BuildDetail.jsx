@@ -246,9 +246,20 @@ function BuildDetail() {
               {reviews.map((review) => (
                 <div key={review.id} className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded shadow-md p-3">
                   <div className="flex justify-between items-start">
-                    <div>
+                    <div className="flex items-center gap-2">
+                      {review.avatar_url ? (
+                        <img
+                          src={`http://localhost:5000${review.avatar_url}`}
+                          alt={review.username}
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                          {review.username.charAt(0).toUpperCase()}
+                        </div>
+                      )}
                       <span className="font-bold text-gray-900 dark:text-white">{review.username}</span>
-                      <span className="ml-2">{'⭐'.repeat(review.rating)}</span>
+                      <span>{'⭐'.repeat(review.rating)}</span>
                     </div>
                     {user && user.id === review.user_id && (
                       <button
@@ -259,7 +270,7 @@ function BuildDetail() {
                       </button>
                     )}
                   </div>
-                  <p className="text-gray-600 dark:text-gray-300">{review.comment}</p>
+                  <p className="text-gray-600 dark:text-gray-300 mt-1">{review.comment}</p>
                   <div className="flex justify-end">
                     <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">{formatDate(review.created_at)}</p>
                   </div>
